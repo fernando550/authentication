@@ -101,3 +101,82 @@ server.js or app.js (entry point for your express server)
     };
     
     module.exports = midware;
+    
+3a)
+    *** Lastly, you're going to need some routes to deal with logging in, as well as logging out. You're going to want to have a navbar that keeps your session available by checking the user object. If it's empty then it wont show you your log in name in the navbar and it'll just say 'sign in'***
+    
+    *** I only have the header in EJS format, but you get the point***
+    
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">YelpCamp</a>
+            </div>
+            
+            <div class="collapse navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <% if(!user){ %>
+                        <li><a href="/login">Login</a></li>
+                        <li><a href="/register">Register</a></li>
+                    <% } else { %>
+                        <li><a href='#'>Signed In As <%= user.username %></a></li>
+                        <li><a href="/logout">LogOut</a></li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    
+    ***and this is what the 'index' or generic routes should look like***
+    
+    var express = require('express'),
+    router  = express.Router(),
+    user = require('../models/user'),
+    passport = require('passport');
+
+    // START
+    router.get('/', function(req, res){
+        res.render('home');
+    });
+    
+    // ==================== AUTHENTICATION ROUTES
+    
+    // REGISTER - account creation page
+    router.get('/register', function(req, res){
+        res.render('register');
+    });
+    
+    // REGISTER - create account
+    router.post('/register', function(req, res){
+        user.register(new user({username: req.body.username}), req.body.password, function(err, user){
+            if(err){
+                console.log(err);
+                return res.render('register');
+            }
+            passport.authenticate('local')(req, res, function(){
+                res.redirect('/home');
+            });
+        });
+    });
+    
+    // LOGIN - account login page
+    router.get('/login', function(req, res){
+        res.render('login');
+    });
+    
+    // LOGIN - sign in
+    router.post('/login', passport.authenticate('local', {
+            successRedirect: '/home',
+            failureRedirect: '/login'
+        }), function(req, res){
+    });
+    
+    // LOGOUT
+    router.get('/logout', function(req, res){
+        req.logout();
+        res.redirect('/home');
+    });
+    
+    
+    module.exports = router
