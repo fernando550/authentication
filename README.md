@@ -50,54 +50,54 @@ server.js or app.js (entry point for your express server)
     });
     
 2b)
-        ***Make a middleware class like this one. This is what your middleware is going to look like so you can make sure a user is logged in for every step*** 
-        
-        var midware = {};
-        
-        ***add different functions called whatever you want ***
-        ***this first function added to my exported object is 'isLoggedIn' ***
-        
-        midware.isLoggedIn = function(req, res, next){
-            if(req.isAuthenticated()){
-                return next();
-            }
-            res.redirect('/login');
-        };
-        
-        midware.checkCampgroundOwner = function(req, res, next){
-            if (req.isAuthenticated()){
-                campground.findById(req.params.id, function(err, aCamp){
-                    if(err){
-                        return res.redirect('back');
+    ***Make a middleware class like this one. This is what your middleware is going to look like so you can make sure a user is logged in for every step*** 
+    
+    var midware = {};
+    
+    ***add different functions called whatever you want ***
+    ***this first function added to my exported object is 'isLoggedIn' ***
+    
+    midware.isLoggedIn = function(req, res, next){
+        if(req.isAuthenticated()){
+            return next();
+        }
+        res.redirect('/login');
+    };
+    
+    midware.checkCampgroundOwner = function(req, res, next){
+        if (req.isAuthenticated()){
+            campground.findById(req.params.id, function(err, aCamp){
+                if(err){
+                    return res.redirect('back');
+                } else {
+                    if(aCamp.author.id.equals(req.user._id)){
+                        next();
                     } else {
-                        if(aCamp.author.id.equals(req.user._id)){
-                            next();
-                        } else {
-                            return res.redirect('back');
-                        }
-                    }
-                });
-            } else {
-                return res.redirect('back');
-            }
-        };
-        
-        midware.checkCommentOwner = function(req, res, next){
-            if (req.isAuthenticated()){
-                comment.findById(req.params.cid, function(err, aComment){
-                    if(err){
                         return res.redirect('back');
-                    } else {
-                        if(aComment.author.id.equals(req.user._id)){
-                            next();
-                        } else {
-                            return res.redirect('back');
-                        }
                     }
-                });
-            } else {
-                return res.redirect('back');
-            }
-        };
-        
-        module.exports = midware;
+                }
+            });
+        } else {
+            return res.redirect('back');
+        }
+    };
+    
+    midware.checkCommentOwner = function(req, res, next){
+        if (req.isAuthenticated()){
+            comment.findById(req.params.cid, function(err, aComment){
+                if(err){
+                    return res.redirect('back');
+                } else {
+                    if(aComment.author.id.equals(req.user._id)){
+                        next();
+                    } else {
+                        return res.redirect('back');
+                    }
+                }
+            });
+        } else {
+            return res.redirect('back');
+        }
+    };
+    
+    module.exports = midware;
